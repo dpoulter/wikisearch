@@ -2,21 +2,67 @@ import requests
 from bs4 import BeautifulSoup
 
 def search_wikileaks(search_term):
-    url = f'https://www.wikileaks.org/s/search-restricted?page=1&qt={search_term}&type=site'
+    url = f'https://search.wikileaks.org/?q={search_term}'
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
 
     results = []
-    for result in soup.find_all('div', {'class': 'result-item'}):
-        title = result.find('a', {'class': 'result-item-title'}).text.strip()
-        link = result.find('a', {'class': 'result-item-title'})['href']
-        results.append({'title': title, 'link': link})
+    result_counter = 0 
+    for result in soup.find_all('div', {'class': 'result'}):
+        result_counter += 1 
+        title_element = result.find('a')
+        if title_element:
+            print(f'Record:  {result_counter}: h4 found')  
+            title = title_element.get_text()
+            link = title_element.get('href') 
+        else:
+            continue
 
+        excerpt_element = result.find('div', {'class': 'excerpt'})
+        if excerpt_element:
+            excerpt = excerpt_element.text.strip()
+        else:
+            excerpt = ''
+
+        leak_label_element = result.find('div', {'class': 'leak-label'})
+        if leak_label_element:
+            leak_label = leak_label_element.text.strip()
+        else:
+            leak_label = ''
+
+        thumbnail_element = result.find('img', {'alt': 'Plusd'})
+        if thumbnail_element:
+            thumbnail_url = thumbnail_element['src']
+        else:
+            thumbnail_url = ''
+
+        created_element = result.find('div', {'class': 'date'})
+        if created_element:
+            created_date = created_element.text.strip().split('<br>')[0]
+        else:
+            created_date = ''
+
+   #     released_element = result.find('div', {'class': 'date'})
+   #     if released_element:
+   #         released_date = released_element.text.strip().split('<br>')[1]
+   #     else:
+        released_date = ''
+
+        results.append({'title': title, 'link': link, 'excerpt': excerpt, 'leak_label': leak_label, 'thumbnail_url': thumbnail_url, 'created_date': created_date, 'released_date': released_date})
+
+    print(f'Number of records returned: {result_counter}')  # Print the counter value
     return results
 
-search_term = 'assange'  # Replace with your desired search term
+search_term = 'kissinger'  # Replace with your desired search term
 wikileaks_results = search_wikileaks(search_term)
 
 print(f'Search results for "{search_term}":')
 for i, result in enumerate(wikileaks_results, start=1):
-    print(f'{i}. {result["title"]} - {result["link"]}')
+    print(f'{i}. Title: {result["title"]}')
+    print(f'   Link: {result["link"]}')
+    print(f'   Excerpt: {result["excerpt"]}')
+    print(f'   Leak Label: {result["leak_label"]}')
+    print(f'   Thumbnail URL: {result["thumbnail_url"]}')
+    print(f'   Created Date: {result["created_date"]}')
+    print(f'   Released Date: {result["released_date"]}')
+    print('---')
