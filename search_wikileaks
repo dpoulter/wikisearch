@@ -1,0 +1,22 @@
+import requests
+from bs4 import BeautifulSoup
+
+def search_wikileaks(search_term):
+    url = f'https://www.wikileaks.org/s/search-restricted?page=1&qt={search_term}&type=site'
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    results = []
+    for result in soup.find_all('div', {'class': 'result-item'}):
+        title = result.find('a', {'class': 'result-item-title'}).text.strip()
+        link = result.find('a', {'class': 'result-item-title'})['href']
+        results.append({'title': title, 'link': link})
+
+    return results
+
+search_term = 'assange'  # Replace with your desired search term
+wikileaks_results = search_wikileaks(search_term)
+
+print(f'Search results for "{search_term}":')
+for i, result in enumerate(wikileaks_results, start=1):
+    print(f'{i}. {result["title"]} - {result["link"]}')
